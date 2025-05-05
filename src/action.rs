@@ -6,11 +6,13 @@ extern crate serde_json;
 
 use colored::Colorize;
 use serde_derive::{Deserialize, Serialize};
-use std::{fs, io, path::Path};
+use std::{
+    fs, io,
+    path::{Path, PathBuf},
+};
 
-use crate::Names;
-use crate::find_files::find_empty_dirs;
 use crate::rename::rename;
+use crate::{Names, find_files::find_files};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Network {
@@ -61,15 +63,21 @@ pub fn move_f(source: &String, dest: &String) -> Result<(), std::io::Error> {
 }
 
 /// Removes all subdirectories without videos
-pub fn clean_dir(dir: &Path) {
-    let dirs = match find_empty_dirs(dir) {
-        Ok(f) => f,
-        Err(e) => panic!("{e}"),
+pub fn clean_dir(dir: &Path) -> Result<(), std::io::Error> {
+    let files = find_files(dir)?;
+
+    if files.is_empty() {
+        return Ok(());
     };
 
-    for dir in dirs {
-        println!("{}", dir.display());
+    for f in files {
+        if let Some(p) = f.parent()
+            && p != dir
+        {
+            fs::remove_dir_all(p)?
+        }
     }
+    return Ok(());
 }
 
 /// Deletes directory and all contents
@@ -86,40 +94,28 @@ fn delete_dir(import_dir: &Path, d: &Path) {
 }
 
 fn action_auto(files: &[String], source_dir: &Path, i: usize, name: Names, unknown: bool) {
-    if !unknown {
-        match move_f(&name.source, &name.import_name) {
-            Ok(()) => {
-                println!(
-                    "[{}] of [{}] {} {}",
-                    i + 1,
-                    files.len(),
-                    "imported:".green(),
-                    &name.import_name.green()
-                );
-                delete_dir(source_dir, Path::new(&name.source));
-            }
-            Err(e) => println!("{}", e),
-        };
+    let (new_name, message) = if !unknown {
+        (&name.import_name, "imported:")
     } else {
-        match move_f(&name.source, &name.re_name) {
-            Ok(()) => {
-                println!(
-                    "[{}] of [{}] {} {}",
-                    i + 1,
-                    files.len(),
-                    "renamed into Import folder:".green(),
-                    name.re_name.green()
-                );
-                delete_dir(source_dir, Path::new(&name.source));
-            }
-            Err(e) => println!("{}", e),
+        (&name.re_name, "renamed into Import folder:")
+    };
+
+    match move_f(&name.source, new_name) {
+        Ok(()) => {
+            println!(
+                "[{}] of [{}] {} {}",
+                i + 1,
+                files.len(),
+                message.green(),
+                new_name.green()
+            );
+            delete_dir(source_dir, Path::new(&name.source));
         }
+        Err(e) => println!("{}", e),
     }
 }
 
 fn action_man(files: &[String], source_dir: &Path, i: usize, name: Names) {
-    let mut sel = String::new();
-
     println!(
         "[{}] of [{}]: {}?\n  'i'mport: {}\n  'r'ename: {}",
         i + 1,
@@ -129,48 +125,41 @@ fn action_man(files: &[String], source_dir: &Path, i: usize, name: Names) {
         name.re_name
     );
 
+    let mut sel = String::new();
     io::stdin()
         .read_line(&mut sel)
         .expect("Failed to read selection");
     sel.pop(); // Remove "\n"
 
-    match sel.as_str() {
-        "i" => {
-            match move_f(&name.source, &name.import_name) {
-                Ok(()) => {
-                    println!("{} {}", "moved to:".green(), &name.import_name.green());
-                    delete_dir(source_dir, Path::new(&name.source));
-                }
-                Err(e) => println!("{}", e),
-            };
+    let new_name = match sel.as_str() {
+        "i" => &name.import_name,
+        "r" => &name.re_name,
+        _ => return,
+    };
+
+    match move_f(&name.source, new_name) {
+        Ok(()) => {
+            println!("{} {}", "moved to:".green(), new_name.green());
+            delete_dir(source_dir, Path::new(&name.source));
         }
-        "r" => {
-            match move_f(&name.source, &name.re_name) {
-                Ok(()) => {
-                    println!(
-                        "{} {}",
-                        "renamed into Import folder:".green(),
-                        name.re_name.green()
-                    );
-                    delete_dir(source_dir, Path::new(&name.source));
-                }
-                Err(e) => println!("{}", e),
-            };
-        }
-        _ => println!("{}", "did nothing".red()),
+        Err(e) => println!("{}", e),
     };
 }
 
-pub fn action(files: &[String], import_dir: &Path, target_dir: &Path, auto: bool) {
+pub fn action(f: Vec<PathBuf>, import_dir: &Path, target_dir: &Path, auto: bool) {
     let json = json_to_data();
+
+    // converting Vec<PathBuf> into Vec<String>
+    // not necessary after everything is refactored
+    let files: Vec<String> = f.iter().map(|f| f.to_string_lossy().into()).collect();
 
     for i in 0..files.len() {
         let (name, unknown) = rename(&files[i], import_dir, target_dir, &json);
 
         if auto {
-            action_auto(files, import_dir, i, name, unknown);
+            action_auto(&files, import_dir, i, name, unknown);
         } else {
-            action_man(files, import_dir, i, name);
+            action_man(&files, import_dir, i, name);
         }
     }
 }

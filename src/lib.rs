@@ -1,3 +1,5 @@
+#![feature(let_chains)]
+
 use crate::action::action;
 use crate::find_files::find_files;
 use std::env; // read program flags
@@ -27,21 +29,14 @@ pub fn run() {
         panic!("Missing flags <Import path> <Library path>");
     };
 
-    let files = match find_files(Path::new(&args[idx])) {
-        Ok(f) => f,
-        Err(e) => panic!("{e}"),
-    };
-
-    // converting Vec<PathBuf> into Vec<String>
-    // not necessary after everything is refactored
-    let vids: Vec<String> = files.iter().map(|f| f.to_string_lossy().into()).collect();
+    let files = find_files(Path::new(&args[idx])).unwrap_or_else(|e| panic!("{e}"));
 
     action(
-        &vids,
+        files,
         Path::new(&args[idx]),
         Path::new(&args[idx + 1]),
         auto,
     );
 
-    action::clean_dir(Path::new(&args[idx]));
+    action::clean_dir(Path::new(&args[idx])).unwrap();
 }

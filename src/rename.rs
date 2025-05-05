@@ -1,7 +1,7 @@
 use std::path::Path;
 
-use crate::action::Network;
 use crate::Names;
+use crate::action::Network;
 
 pub enum Source {
     TGX,
@@ -19,11 +19,11 @@ pub fn capitalize(s: &str) -> String {
 }
 
 fn rename_gp(
-    source: &String,
-    import_dir: &String,
-    target_dir: &String,
-    network: &String,
-    studio: &String,
+    source: &str,
+    import_dir: &str,
+    target_dir: &str,
+    network: &str,
+    studio: &str,
 ) -> (Names, bool) {
     let (_, filename) = source
         .rsplit_once('/')
@@ -73,11 +73,11 @@ fn rename_gp(
 }
 
 fn rename_tgx(
-    source: &String,
-    import_dir: &String,
-    target_dir: &String,
-    network: &String,
-    studio: &String,
+    source: &str,
+    import_dir: &str,
+    target_dir: &str,
+    network: &str,
+    studio: &str,
 ) -> (Names, bool) {
     let (_, filename) = source
         .rsplit_once('/')
