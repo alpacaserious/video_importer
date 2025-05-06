@@ -1,4 +1,4 @@
-#![feature(let_chains)]
+#![feature(let_chains, iter_intersperse)]
 
 use crate::action::action;
 use crate::find_files::find_files;

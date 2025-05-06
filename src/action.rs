@@ -24,6 +24,7 @@ pub struct Network {
 pub struct Studio {
     pub tgx: String,
     pub gp: String,
+    pub xc: String,
     pub proper: String,
 }
 
@@ -42,16 +43,16 @@ pub fn json_to_data() -> Vec<Network> {
     value
 }
 
-pub fn move_f(source: &String, dest: &String) -> Result<(), std::io::Error> {
+pub fn move_f(source: &str, dest: &str) -> Result<(), std::io::Error> {
     // create year dir if it does not exist
-    let dest_path = Path::new(dest).parent().unwrap();
-    if !dest_path.exists()
+    if let Some(dest_path) = Path::new(dest).parent()
+        && !dest_path.exists()
         && dest_path
             .file_name()
             .unwrap()
             .to_string_lossy()
             .to_string()
-            .parse::<f64>()
+            .parse::<u32>()
             .is_ok()
     {
         fs::create_dir(dest_path)?;
@@ -93,21 +94,15 @@ fn delete_dir(import_dir: &Path, d: &Path) {
     }
 }
 
-fn action_auto(files: &[String], source_dir: &Path, i: usize, name: Names, unknown: bool) {
-    let (new_name, message) = if !unknown {
-        (&name.import_name, "imported:")
-    } else {
-        (&name.re_name, "renamed into Import folder:")
-    };
-
-    match move_f(&name.source, new_name) {
+fn action_auto(files: &[String], source_dir: &Path, i: usize, name: Names) {
+    match move_f(&name.source, &name.import_name) {
         Ok(()) => {
             println!(
                 "[{}] of [{}] {} {}",
                 i + 1,
                 files.len(),
-                message.green(),
-                new_name.green()
+                "imported: ".green(),
+                &name.import_name.green()
             );
             delete_dir(source_dir, Path::new(&name.source));
         }
@@ -154,12 +149,12 @@ pub fn action(f: Vec<PathBuf>, import_dir: &Path, target_dir: &Path, auto: bool)
     let files: Vec<String> = f.iter().map(|f| f.to_string_lossy().into()).collect();
 
     for i in 0..files.len() {
-        let (name, unknown) = rename(&files[i], import_dir, target_dir, &json);
-
-        if auto {
-            action_auto(&files, import_dir, i, name, unknown);
-        } else {
-            action_man(&files, import_dir, i, name);
+        if let Some(names) = rename(f[i].as_ref(), target_dir, &json) {
+            if auto {
+                action_auto(&files, import_dir, i, names);
+            } else {
+                action_man(&files, import_dir, i, names);
+            }
         }
     }
 }
