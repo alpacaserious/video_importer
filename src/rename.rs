@@ -48,7 +48,7 @@ pub fn rename(source: &Path, target_path: &Path, json: &Vec<Network>) -> Option<
     let mut capped: String = {
         let mut capped: String = name
             .split(".")
-            .map(|n| capitalize(n))
+            .map(capitalize)
             .intersperse(String::from(" "))
             .collect();
 

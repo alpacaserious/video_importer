@@ -18,10 +18,7 @@ pub struct Names {
 pub fn run() {
     let args: Vec<String> = env::args().collect();
 
-    let auto: bool;
-    let idx: usize;
-
-    (auto, idx) = if args.len() == 4 && args[1] == "a" {
+    let (auto, idx) = if args.len() == 4 && args[1] == "a" {
         (true, 2)
     } else if args.len() == 3 {
         (false, 1)

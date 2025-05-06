@@ -78,7 +78,7 @@ pub fn clean_dir(dir: &Path) -> Result<(), std::io::Error> {
             fs::remove_dir_all(p)?
         }
     }
-    return Ok(());
+    Ok(())
 }
 
 /// Deletes directory and all contents
@@ -94,13 +94,13 @@ fn delete_dir(import_dir: &Path, d: &Path) {
     }
 }
 
-fn action_auto(files: &[String], source_dir: &Path, i: usize, name: Names) {
+fn action_auto(files_len: usize, source_dir: &Path, i: usize, name: Names) {
     match move_f(&name.source, &name.import_name) {
         Ok(()) => {
             println!(
                 "[{}] of [{}] {} {}",
                 i + 1,
-                files.len(),
+                files_len,
                 "imported: ".green(),
                 &name.import_name.green()
             );
@@ -110,11 +110,11 @@ fn action_auto(files: &[String], source_dir: &Path, i: usize, name: Names) {
     }
 }
 
-fn action_man(files: &[String], source_dir: &Path, i: usize, name: Names) {
+fn action_man(files_len: usize, source_dir: &Path, i: usize, name: Names) {
     println!(
         "[{}] of [{}]: {}?\n  'i'mport: {}\n  'r'ename: {}",
         i + 1,
-        files.len(),
+        files_len,
         name.source,
         name.import_name,
         name.re_name
@@ -141,19 +141,15 @@ fn action_man(files: &[String], source_dir: &Path, i: usize, name: Names) {
     };
 }
 
-pub fn action(f: Vec<PathBuf>, import_dir: &Path, target_dir: &Path, auto: bool) {
+pub fn action(files: Vec<PathBuf>, import_dir: &Path, target_dir: &Path, auto: bool) {
     let json = json_to_data();
 
-    // converting Vec<PathBuf> into Vec<String>
-    // not necessary after everything is refactored
-    let files: Vec<String> = f.iter().map(|f| f.to_string_lossy().into()).collect();
-
-    for i in 0..files.len() {
-        if let Some(names) = rename(f[i].as_ref(), target_dir, &json) {
+    for (i, f) in files.iter().enumerate() {
+        if let Some(names) = rename(f, target_dir, &json) {
             if auto {
-                action_auto(&files, import_dir, i, names);
+                action_auto(files.len(), import_dir, i, names);
             } else {
-                action_man(&files, import_dir, i, names);
+                action_man(files.len(), import_dir, i, names);
             }
         }
     }
