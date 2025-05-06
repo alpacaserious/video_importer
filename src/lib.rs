@@ -35,5 +35,6 @@ pub fn run() {
         auto,
     );
 
+    println!("Cleaning import directory...");
     action::clean_dir(Path::new(&args[idx])).unwrap();
 }

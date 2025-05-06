@@ -82,18 +82,6 @@ pub fn clean_dir(dir: &Path) -> Result<(), std::io::Error> {
     Ok(())
 }
 
-/// Deletes directory and all contents
-/// import_dir: Import dir, d: path to remove
-fn delete_dir(import_dir: &Path, d: &Path) {
-    // should never fail as long as the videos aren't directly under the root
-    let parent_dir = d.parent().expect("no parent path found");
-
-    // as remove_dir_all() will delete dir and content we don't wan't to delete the Import dir
-    // used when videos are directly in the Import dir
-    if parent_dir != import_dir {
-        let _ = fs::remove_dir_all(parent_dir).inspect_err(|e| println!("{}", e));
-    }
-}
 fn action_auto(files_len: usize, i: usize, name: &Names) {
     match move_f(&name.source, &name.import_name) {
         Ok(()) => {
