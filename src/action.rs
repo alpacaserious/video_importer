@@ -72,10 +72,11 @@ pub fn clean_dir(dir: &Path) -> Result<(), std::io::Error> {
     };
 
     for f in files {
-        if let Some(p) = f.parent()
-            && p != dir
-        {
+        let p = f.parent().expect("file parent");
+        if p != dir {
             fs::remove_dir_all(p)?
+        } else {
+            println!("won't remove {}", p.display());
         }
     }
     Ok(())
