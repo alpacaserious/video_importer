@@ -21,7 +21,6 @@ pub fn find_files(p: &Path) -> Result<Vec<PathBuf>, std::io::Error> {
     let mut files = vec![];
 
     // find all contents
-    println!("Finding files...");
     let _ = find_files_rec(p, &mut files).inspect_err(|e| println!("{}", e));
 
     files.sort_unstable_by_key(|a| a.to_string_lossy().to_string().to_lowercase());

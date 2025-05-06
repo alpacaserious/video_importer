@@ -26,14 +26,10 @@ pub fn run() {
         panic!("Missing flags <Import path> <Library path>");
     };
 
+    println!("Finding files...");
     let files = find_files(Path::new(&args[idx])).unwrap_or_else(|e| panic!("{e}"));
 
-    action(
-        files,
-        Path::new(&args[idx]),
-        Path::new(&args[idx + 1]),
-        auto,
-    );
+    action(files, Path::new(&args[idx + 1]), auto);
 
     println!("Cleaning import directory...");
     action::clean_dir(Path::new(&args[idx])).unwrap();
