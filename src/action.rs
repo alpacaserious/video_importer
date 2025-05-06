@@ -93,7 +93,7 @@ fn action_auto(files_len: usize, i: usize, name: &Names) {
                 &name.import_name.green()
             );
         }
-        Err(e) => println!("{}", e),
+        Err(e) => println!("{e}"),
     }
 }
 
@@ -123,7 +123,7 @@ fn action_man(files_len: usize, i: usize, name: &Names) {
         Ok(()) => {
             println!("{} {}", "moved to:".green(), new_name.green());
         }
-        Err(e) => println!("{}", e),
+        Err(e) => println!("{e}"),
     };
 }
 

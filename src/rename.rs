@@ -3,13 +3,6 @@ use std::path::{Path, PathBuf};
 use crate::Names;
 use crate::action::Network;
 
-pub enum Source {
-    TGX,
-    GP,
-    XC,
-    Proper,
-}
-
 /// Capitalizes the first character in s.
 pub fn capitalize(s: &str) -> String {
     let mut c = s.chars();
@@ -65,7 +58,7 @@ pub fn rename(source: &Path, target_path: &Path, json: &Vec<Network>) -> Option<
     let source_str = source.display().to_string();
     Some(Names {
         source: source_str.clone(),
-        import_name: format!("{}/{}", target_dir, capped),
+        import_name: format!("{target_dir}/{capped}"),
         re_name: source_str.clone(),
     })
 }

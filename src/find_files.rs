@@ -21,7 +21,7 @@ pub fn find_files(p: &Path) -> Result<Vec<PathBuf>, std::io::Error> {
     let mut files = vec![];
 
     // find all contents
-    let _ = find_files_rec(p, &mut files).inspect_err(|e| println!("{}", e));
+    let _ = find_files_rec(p, &mut files).inspect_err(|e| println!("{e}"));
 
     files.sort_unstable_by_key(|a| a.to_string_lossy().to_string().to_lowercase());
 
@@ -32,7 +32,7 @@ pub fn find_files(p: &Path) -> Result<Vec<PathBuf>, std::io::Error> {
 fn find_files_rec(s: &Path, files: &mut Vec<PathBuf>) -> Result<(), std::io::Error> {
     let paths = match fs::read_dir(s) {
         Ok(p) => p,
-        Err(e) => panic!("reading path failed: {}", e),
+        Err(e) => panic!("reading path failed: {e}"),
     };
 
     // find everything in dir
