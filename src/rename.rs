@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::Names;
 use crate::action::Network;
@@ -36,38 +36,31 @@ pub fn rename(source: &Path, target_path: &Path, json: &Vec<Network>) -> Option<
     };
 
     // "studio" "24.03.30.rest.of"
-    let (_, name_wo_studio) = filename.split_once(".").unwrap();
+    let (_, name_wo_studio) = filename.split_once(".")?;
 
     // "24.07.30" "rest.of"
-    let (date, name) = name_wo_studio.split_at_checked(8).unwrap();
-    let year = format!("20{}", date.split_at(2).0);
+    let (date, name) = name_wo_studio.split_at_checked(8)?;
+    let date = date.replace(".", "-");
+    let year = format!("20{}", date.split_at_checked(2)?.0);
 
-    // "2024-07-30 Rest Of"
     let name = name.replace(".480p", "");
 
-    let mut capped: String = {
-        let mut capped: String = name
-            .split(".")
-            .map(capitalize)
-            .intersperse(String::from(" "))
-            .collect();
+    // "2024-07-30 Rest Of"
+    let mut capped: String = name
+        .split(".")
+        .map(capitalize)
+        .intersperse(String::from(" "))
+        .collect();
 
-        let date = date.replace(".", "-");
+    capped.insert_str(0, &format!("20{}", &date));
 
-        capped.insert_str(0, &format!("20{}", &date));
-        capped.push_str(&format!(
-            ".{}",
-            source.extension().unwrap().to_string_lossy(),
-        ));
-        capped
-    };
+    let mut path = PathBuf::from(&capped);
+    path.set_extension(source.extension()?);
 
-    capped = format!("{}/{}/{} {}", studio, year, studio, capped);
+    capped = format!("{}/{}/{} {}", studio, year, studio, path.display());
     if network.is_some() {
         capped = format!("{}/{}", network.unwrap(), capped);
     }
-
-    println!("{capped}");
 
     let source_str = source.display().to_string();
     Some(Names {
@@ -77,12 +70,16 @@ pub fn rename(source: &Path, target_path: &Path, json: &Vec<Network>) -> Option<
     })
 }
 
-/// Return Some(Network, Studio) if found
+/// Return Some(Some(Network), Studio) if found
 /// Otherwise returns None
 pub fn studio_f(s: &str, json: &Vec<Network>) -> Option<(Option<String>, String)> {
     for net in json {
         for stu in &net.studios {
-            if s.starts_with(&stu.xc) {
+            if format!("{s}.").starts_with(&stu.xc) {
+                if net.name == "None" {
+                    return Some((None, stu.proper.clone()));
+                }
+
                 return Some((Some(net.name.clone()), stu.proper.clone()));
             };
         }
