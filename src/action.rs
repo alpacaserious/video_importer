@@ -93,8 +93,7 @@ fn delete_dir(import_dir: &Path, d: &Path) {
         let _ = fs::remove_dir_all(parent_dir).inspect_err(|e| println!("{}", e));
     }
 }
-
-fn action_auto(files_len: usize, source_dir: &Path, i: usize, name: Names) {
+fn action_auto(files_len: usize, i: usize, name: &Names) {
     match move_f(&name.source, &name.import_name) {
         Ok(()) => {
             println!(
@@ -104,13 +103,12 @@ fn action_auto(files_len: usize, source_dir: &Path, i: usize, name: Names) {
                 "imported: ".green(),
                 &name.import_name.green()
             );
-            delete_dir(source_dir, Path::new(&name.source));
         }
         Err(e) => println!("{}", e),
     }
 }
 
-fn action_man(files_len: usize, source_dir: &Path, i: usize, name: Names) {
+fn action_man(files_len: usize, i: usize, name: &Names) {
     println!(
         "[{}] of [{}]: {}?\n  'i'mport: {}\n  'r'ename: {}",
         i + 1,
@@ -135,22 +133,28 @@ fn action_man(files_len: usize, source_dir: &Path, i: usize, name: Names) {
     match move_f(&name.source, new_name) {
         Ok(()) => {
             println!("{} {}", "moved to:".green(), new_name.green());
-            delete_dir(source_dir, Path::new(&name.source));
         }
         Err(e) => println!("{}", e),
     };
 }
 
-pub fn action(files: Vec<PathBuf>, import_dir: &Path, target_dir: &Path, auto: bool) {
+pub fn action(files: Vec<PathBuf>, target_dir: &Path, auto: bool) {
     let json = json_to_data();
 
-    for (i, f) in files.iter().enumerate() {
-        if let Some(names) = rename(f, target_dir, &json) {
-            if auto {
-                action_auto(files.len(), import_dir, i, names);
-            } else {
-                action_man(files.len(), import_dir, i, names);
-            }
-        }
+    let names: Vec<Names> = files
+        .iter()
+        .filter_map(|f| rename(f, target_dir, &json))
+        .collect();
+
+    if auto {
+        names
+            .iter()
+            .enumerate()
+            .for_each(|(i, n)| action_auto(names.len(), i, n));
+    } else {
+        names
+            .iter()
+            .enumerate()
+            .for_each(|(i, n)| action_man(names.len(), i, n));
     }
 }
