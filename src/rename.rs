@@ -21,12 +21,7 @@ pub fn rename(source: &Path, target_path: &Path, json: &Vec<Network>) -> Option<
         return None;
     }
 
-    let (network, studio) = match studio_f(&filename, json) {
-        Some((n, s)) => (n, s),
-        None => {
-            return None;
-        }
-    };
+    let (network, studio) = studio_f(&filename, json)?;
 
     // "studio" "24.03.30.rest.of"
     let (_, name_wo_studio) = filename.split_once(".")?;

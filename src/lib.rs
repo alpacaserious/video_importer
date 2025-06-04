@@ -18,19 +18,15 @@ pub struct Names {
 pub fn run() {
     let args: Vec<String> = env::args().collect();
 
-    let (auto, idx) = if args.len() == 4 && args[1] == "a" {
-        (true, 2)
-    } else if args.len() == 3 {
-        (false, 1)
-    } else {
+    if args.len() != 3 {
         panic!("Missing flags <Import path> <Library path>");
-    };
+    }
 
     println!("Finding files...");
-    let files = find_files(Path::new(&args[idx])).unwrap_or_else(|e| panic!("{e}"));
+    let files = find_files(Path::new(&args[1])).unwrap_or_else(|e| panic!("{e}"));
 
-    action(files, Path::new(&args[idx + 1]), auto);
+    action(files, Path::new(&args[2]));
 
     println!("Cleaning import directory...");
-    action::clean_dir(Path::new(&args[idx])).unwrap();
+    action::clean_dir(Path::new(&args[1])).unwrap();
 }

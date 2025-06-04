@@ -7,7 +7,7 @@ extern crate serde_json;
 use colored::Colorize;
 use serde_derive::{Deserialize, Serialize};
 use std::{
-    fs, io,
+    fs,
     path::{Path, PathBuf},
 };
 
@@ -46,6 +46,8 @@ pub fn json_to_data() -> Vec<Network> {
 pub fn move_f(source: &str, dest: &str) -> Result<(), std::io::Error> {
     // create year dir if it does not exist
     if let Some(dest_path) = Path::new(dest).parent()
+        && let Some(studio_dir) = dest_path.parent()
+        && studio_dir.exists()
         && !dest_path.exists()
         && dest_path
             .file_name()
@@ -82,7 +84,7 @@ pub fn clean_dir(dir: &Path) -> Result<(), std::io::Error> {
     Ok(())
 }
 
-fn action_auto(files_len: usize, i: usize, name: &Names) {
+fn action_impl(files_len: usize, i: usize, name: &Names) {
     match move_f(&name.source, &name.import_name) {
         Ok(()) => {
             println!(
@@ -97,37 +99,7 @@ fn action_auto(files_len: usize, i: usize, name: &Names) {
     }
 }
 
-fn action_man(files_len: usize, i: usize, name: &Names) {
-    println!(
-        "[{}] of [{}]: {}?\n  'i'mport: {}\n  'r'ename: {}",
-        i + 1,
-        files_len,
-        name.source,
-        name.import_name,
-        name.re_name
-    );
-
-    let mut sel = String::new();
-    io::stdin()
-        .read_line(&mut sel)
-        .expect("Failed to read selection");
-    sel.pop(); // Remove "\n"
-
-    let new_name = match sel.as_str() {
-        "i" => &name.import_name,
-        "r" => &name.re_name,
-        _ => return,
-    };
-
-    match move_f(&name.source, new_name) {
-        Ok(()) => {
-            println!("{} {}", "moved to:".green(), new_name.green());
-        }
-        Err(e) => println!("{e}"),
-    };
-}
-
-pub fn action(files: Vec<PathBuf>, target_dir: &Path, auto: bool) {
+pub fn action(files: Vec<PathBuf>, target_dir: &Path) {
     let json = json_to_data();
 
     let names: Vec<Names> = files
@@ -135,15 +107,8 @@ pub fn action(files: Vec<PathBuf>, target_dir: &Path, auto: bool) {
         .filter_map(|f| rename(f, target_dir, &json))
         .collect();
 
-    if auto {
-        names
-            .iter()
-            .enumerate()
-            .for_each(|(i, n)| action_auto(names.len(), i, n));
-    } else {
-        names
-            .iter()
-            .enumerate()
-            .for_each(|(i, n)| action_man(names.len(), i, n));
-    }
+    names
+        .iter()
+        .enumerate()
+        .for_each(|(i, n)| action_impl(names.len(), i, n));
 }

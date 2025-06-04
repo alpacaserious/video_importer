@@ -41,11 +41,9 @@ fn find_files_rec(s: &Path, files: &mut Vec<PathBuf>) -> Result<(), std::io::Err
 
         if tmp.is_dir() {
             let _ = find_files_rec(&tmp, files);
-        } else {
+        } else if is_vid(&tmp) {
             // select only videos
-            if is_vid(&tmp) {
-                files.push(tmp.clone());
-            }
+            files.push(tmp.clone());
         }
     }
     Ok(())
