@@ -85,14 +85,14 @@ pub fn clean_dir(dir: &Path) -> Result<(), std::io::Error> {
 }
 
 fn action_impl(files_len: usize, i: usize, name: &Names) {
-    match move_f(&name.source, &name.import_name) {
+    match move_f(&name.old, &name.new) {
         Ok(()) => {
             println!(
                 "[{}] of [{}] {} {}",
                 i + 1,
                 files_len,
                 "imported: ".green(),
-                &name.import_name.green()
+                &name.new.green()
             );
         }
         Err(e) => println!("{e}"),

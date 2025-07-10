@@ -9,10 +9,10 @@ mod action;
 mod find_files;
 mod rename;
 
+#[cfg_attr(test, derive(Debug, PartialEq))]
 pub struct Names {
-    source: String,
-    import_name: String,
-    re_name: String,
+    old: String,
+    new: String,
 }
 
 pub fn run() {
