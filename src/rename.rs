@@ -21,12 +21,7 @@ pub fn rename(source: &Path, target_path: &Path, json: &Vec<Network>) -> Option<
         return None;
     }
 
-    let (network, studio) = match studio_f(&filename, json) {
-        Some((n, s)) => (n, s),
-        None => {
-            return None;
-        }
-    };
+    let (network, studio) = studio_f(&filename, json)?;
 
     // "studio" "24.03.30.rest.of"
     let (_, name_wo_studio) = filename.split_once(".")?;
@@ -39,11 +34,15 @@ pub fn rename(source: &Path, target_path: &Path, json: &Vec<Network>) -> Option<
     let name = name.replace(".480p", "");
 
     // "2024-07-30 Rest Of"
-    let mut capped: String = name
-        .split(".")
-        .map(capitalize)
-        .intersperse(String::from(" "))
-        .collect();
+    let mut capped: Vec<String> = name.split(".").map(capitalize).collect();
+
+    if capped.len() >= 5 && capped[3] == "And" {
+        capped[3] = ",".to_string()
+    };
+
+    let mut capped: String = capped.into_iter().intersperse(String::from(" ")).collect();
+    // adds " , " instead of ", "
+    capped = capped.replace(" , ", ", ");
 
     capped.insert_str(0, &format!("20{}", &date));
 
@@ -57,9 +56,8 @@ pub fn rename(source: &Path, target_path: &Path, json: &Vec<Network>) -> Option<
 
     let source_str = source.display().to_string();
     Some(Names {
-        source: source_str.clone(),
-        import_name: format!("{target_dir}/{capped}"),
-        re_name: source_str.clone(),
+        old: source_str,
+        new: format!("{target_dir}/{capped}"),
     })
 }
 
@@ -78,4 +76,59 @@ pub fn studio_f(s: &str, json: &Vec<Network>) -> Option<(Option<String>, String)
         }
     }
     None
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::action::json_to_data;
+
+    use super::*;
+
+    #[test]
+    fn test_capitalize() {
+        let s = "lowercase";
+        assert_eq!(capitalize(s), String::from("Lowercase"));
+    }
+
+    #[test]
+    fn test_and_to_comma() {
+        let networks = json_to_data();
+        let names = rename(
+            &PathBuf::from("/import/milfty.23.02.11.first.name.and.second.name.mp4"),
+            &PathBuf::from("/target"),
+            &networks,
+        )
+        .unwrap();
+
+        assert_eq!(
+            names,
+            Names {
+                old: String::from("/import/milfty.23.02.11.first.name.and.second.name.mp4"),
+                new: String::from(
+                    "/target/Paper Street Media/MYLF/Milfty/2023/Milfty 2023-02-11 First Name, Second Name.mp4"
+                )
+            }
+        )
+    }
+
+    #[test]
+    fn test_rename_correct() {
+        let networks = json_to_data();
+        let names = rename(
+            &PathBuf::from("/import/milfty.23.02.11.title.mp4"),
+            &PathBuf::from("/target"),
+            &networks,
+        )
+        .unwrap();
+
+        assert_eq!(
+            names,
+            Names {
+                old: String::from("/import/milfty.23.02.11.title.mp4"),
+                new: String::from(
+                    "/target/Paper Street Media/MYLF/Milfty/2023/Milfty 2023-02-11 Title.mp4"
+                )
+            }
+        )
+    }
 }
