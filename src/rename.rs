@@ -67,15 +67,14 @@ pub fn rename<'a>(
 
 /// Return Some(Some(Network), Studio) if found
 /// Otherwise returns None
-pub fn studio_f(s: &str, json: &Vec<Network>) -> Option<(Option<String>, String)> {
+pub fn studio_f<'a>(s: &'a str, json: &'a Vec<Network>) -> Option<(Option<&'a str>, &'a str)> {
     for net in json {
         for stu in &net.studios {
-            if format!("{s}.").starts_with(&stu.xc) {
+            if format!("{s}.").starts_with(stu.xc) {
                 if net.name == "None" {
-                    return Some((None, stu.proper.clone()));
+                    return Some((None, stu.proper));
                 }
-
-                return Some((Some(net.name.clone()), stu.proper.clone()));
+                return Some((Some(net.name), stu.proper));
             };
         }
     }
@@ -96,7 +95,12 @@ mod tests {
 
     #[test]
     fn test_and_to_comma() {
-        let networks = json_to_data();
+        let binding = embed_file::embed_string!("rename.json");
+        let text = match binding {
+            std::borrow::Cow::Borrowed(binding) => binding.to_owned(),
+            std::borrow::Cow::Owned(binding) => binding,
+        };
+        let networks = json_to_data(&text);
         let names = rename(
             &Path::new("/import/milfty.23.02.11.first.name.and.second.name.mp4"),
             &Path::new("/target"),
@@ -117,7 +121,12 @@ mod tests {
 
     #[test]
     fn test_rename_correct() {
-        let networks = json_to_data();
+        let binding = embed_file::embed_string!("rename.json");
+        let text = match binding {
+            std::borrow::Cow::Borrowed(binding) => binding.to_owned(),
+            std::borrow::Cow::Owned(binding) => binding,
+        };
+        let networks: Vec<Network> = serde_json::from_str(&text).unwrap();
         let names = rename(
             &Path::new("/import/milfty.23.02.11.title.mp4"),
             &Path::new("/target"),

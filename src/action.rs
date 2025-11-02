@@ -15,32 +15,17 @@ use crate::rename::rename;
 use crate::{Names, find_files::find_files};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Network {
-    pub name: String,
-    pub studios: Vec<Studio>,
+pub struct Network<'a> {
+    pub name: &'a str,
+    pub studios: Vec<Studio<'a>>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Studio {
-    pub tgx: String,
-    pub gp: String,
-    pub xc: String,
-    pub proper: String,
-}
-
-/// Reads and parses a json file into a struct
-pub fn json_to_data() -> Vec<Network> {
-    let binding = embed_file::embed_string!("rename.json");
-
-    let text = match binding {
-        std::borrow::Cow::Borrowed(binding) => binding.to_owned(),
-        std::borrow::Cow::Owned(binding) => binding,
-    };
-
-    // Parse the string of data into serde_json::Value.
-    let value: Vec<Network> = serde_json::from_str(&text).unwrap();
-
-    value
+pub struct Studio<'a> {
+    pub tgx: &'a str,
+    pub gp: &'a str,
+    pub xc: &'a str,
+    pub proper: &'a str,
 }
 
 pub fn move_f(source: &str, dest: &str) -> Result<(), std::io::Error> {
@@ -92,19 +77,17 @@ fn action_impl(files_len: usize, i: usize, name: &Names) {
                 i + 1,
                 files_len,
                 "imported: ".green(),
-                &name.new.green()
+                name.new.green()
             );
         }
         Err(e) => println!("{e}"),
     }
 }
 
-pub fn action(files: Vec<PathBuf>, target_dir: &Path) {
-    let json = json_to_data();
-
+pub fn action(files: Vec<PathBuf>, target_dir: &Path, networks: Vec<Network>) {
     let names: Vec<Names> = files
         .iter()
-        .filter_map(|f| rename(f, target_dir, &json))
+        .filter_map(|f| rename(f, target_dir, &networks))
         .collect();
 
     names

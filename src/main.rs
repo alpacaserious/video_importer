@@ -1,6 +1,6 @@
 #![feature(iter_intersperse)]
 
-use crate::action::action;
+use crate::action::{Network, action};
 use crate::find_files::find_files;
 use std::env; // read program flags
 use std::path::Path;
@@ -27,7 +27,13 @@ pub fn main() {
     println!("Finding files...");
     let files = find_files(Path::new(&args[idx]));
 
-    action(files, Path::new(&args[idx + 1]));
+    let binding = embed_file::embed_string!("rename.json");
+    let text = match binding {
+        std::borrow::Cow::Borrowed(binding) => binding.to_owned(),
+        std::borrow::Cow::Owned(binding) => binding,
+    };
+    let networks: Vec<Network> = serde_json::from_str(&text).unwrap();
+    action(files, Path::new(&args[idx + 1]), networks);
 
     println!("Cleaning import directory...");
     action::clean_dir(Path::new(&args[idx])).unwrap();
