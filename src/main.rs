@@ -9,27 +9,25 @@ mod action;
 mod find_files;
 mod rename;
 
+#[cfg_attr(test, derive(Debug, PartialEq))]
 pub struct Names {
-    source: String,
-    import_name: String,
-    re_name: String,
+    old: String,
+    new: String,
 }
 
 pub fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let (auto, idx) = if args.len() == 4 && args[1] == "a" {
-        (true, 2)
-    } else if args.len() == 3 {
-        (false, 1)
+    let idx = if args.len() == 3 {
+        1
     } else {
         panic!("Missing flags <Import path> <Library path>");
     };
 
     println!("Finding files...");
-    let files = find_files(Path::new(&args[idx])).unwrap_or_else(|e| panic!("{e}"));
+    let files = find_files(Path::new(&args[idx]));
 
-    action(files, Path::new(&args[idx + 1]), auto);
+    action(files, Path::new(&args[idx + 1]));
 
     println!("Cleaning import directory...");
     action::clean_dir(Path::new(&args[idx])).unwrap();

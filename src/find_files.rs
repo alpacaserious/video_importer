@@ -15,36 +15,22 @@ fn is_vid(v: &Path) -> bool {
     }
 }
 
-// s: working dir
-pub fn find_files(p: &Path) -> Result<Vec<PathBuf>, std::io::Error> {
-    // list of all files
-    let mut files = vec![];
-
-    // find all contents
-    let _ = find_files_rec(p, &mut files).inspect_err(|e| println!("{e}"));
-
-    files.sort_unstable_by_key(|a| a.to_string_lossy().to_string().to_lowercase());
-
-    Ok(files)
-}
-
-// s: working dir
-fn find_files_rec(s: &Path, files: &mut Vec<PathBuf>) -> Result<(), std::io::Error> {
-    let paths = match fs::read_dir(s) {
-        Ok(p) => p,
-        Err(e) => panic!("reading path failed: {e}"),
+pub fn find_files(path: &Path) -> Vec<PathBuf> {
+    let Ok(paths) = fs::read_dir(path) else {
+        return vec![];
     };
 
-    // find everything in dir
-    for path in paths {
-        let tmp = path?.path();
-
-        if tmp.is_dir() {
-            let _ = find_files_rec(&tmp, files);
-        } else if is_vid(&tmp) {
-            // select only videos
-            files.push(tmp.clone());
-        }
-    }
-    Ok(())
+    paths
+        .into_iter()
+        .filter_map(Result::ok)
+        .flat_map(|p| {
+            if p.path().is_dir() {
+                find_files(&p.path())
+            } else if is_vid(&p.path()) {
+                vec![p.path()]
+            } else {
+                vec![]
+            }
+        })
+        .collect()
 }

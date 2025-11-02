@@ -67,7 +67,7 @@ pub fn move_f(source: &str, dest: &str) -> Result<(), std::io::Error> {
 
 /// Removes all subdirectories without videos
 pub fn clean_dir(dir: &Path) -> Result<(), std::io::Error> {
-    let files = find_files(dir)?;
+    let files = find_files(dir);
 
     if files.is_empty() {
         return Ok(());
