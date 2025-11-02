@@ -83,8 +83,6 @@ pub fn studio_f<'a>(s: &'a str, json: &'a Vec<Network>) -> Option<(Option<&'a st
 
 #[cfg(test)]
 mod tests {
-    use crate::action::json_to_data;
-
     use super::*;
 
     #[test]
@@ -100,7 +98,7 @@ mod tests {
             std::borrow::Cow::Borrowed(binding) => binding.to_owned(),
             std::borrow::Cow::Owned(binding) => binding,
         };
-        let networks = json_to_data(&text);
+        let networks: Vec<Network> = serde_json::from_str(&text).unwrap();
         let names = rename(
             &Path::new("/import/milfty.23.02.11.first.name.and.second.name.mp4"),
             &Path::new("/target"),
