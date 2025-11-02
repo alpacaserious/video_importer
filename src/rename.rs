@@ -12,11 +12,11 @@ pub fn capitalize(s: &str) -> String {
     }
 }
 
-/// source: complete path, target: target dir, json: parsed json struct
+/// source: complete path, target: target dir, networks: parsed json struct
 pub fn rename<'a>(
     source: &'a Path,
     target_path: &'a Path,
-    json: &'a Vec<Network>,
+    networks: &'a Vec<Network>,
 ) -> Option<Names<'a>> {
     let target_dir = target_path.to_string_lossy().to_string();
 
@@ -25,7 +25,7 @@ pub fn rename<'a>(
         return None;
     }
 
-    let (network, studio) = studio_f(&filename, json)?;
+    let (network, studio) = studio_f(&filename, networks)?;
 
     // "studio" "24.03.30.rest.of"
     let (_, name_wo_studio) = filename.split_once(".")?;
@@ -100,8 +100,8 @@ mod tests {
         };
         let networks: Vec<Network> = serde_json::from_str(&text).unwrap();
         let names = rename(
-            &Path::new("/import/milfty.23.02.11.first.name.and.second.name.mp4"),
-            &Path::new("/target"),
+            Path::new("/import/milfty.23.02.11.first.name.and.second.name.mp4"),
+            Path::new("/target"),
             &networks,
         )
         .unwrap();
@@ -126,8 +126,8 @@ mod tests {
         };
         let networks: Vec<Network> = serde_json::from_str(&text).unwrap();
         let names = rename(
-            &Path::new("/import/milfty.23.02.11.title.mp4"),
-            &Path::new("/target"),
+            Path::new("/import/milfty.23.02.11.title.mp4"),
+            Path::new("/target"),
             &networks,
         )
         .unwrap();
