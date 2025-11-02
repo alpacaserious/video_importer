@@ -84,10 +84,10 @@ fn action_impl(files_len: usize, i: usize, name: &Names) {
     }
 }
 
-pub fn action(files: Vec<PathBuf>, target_dir: &Path, networks: Vec<Network>) {
+pub fn action(files: &[PathBuf], target_dir: &Path, networks: &[Network]) {
     let names: Vec<Names> = files
         .iter()
-        .filter_map(|f| rename(f, target_dir, &networks))
+        .filter_map(|f| rename(f, target_dir, networks))
         .collect();
 
     names

@@ -33,7 +33,7 @@ pub fn main() {
         std::borrow::Cow::Owned(binding) => binding,
     };
     let networks: Vec<Network> = serde_json::from_str(&text).unwrap();
-    action(files, Path::new(&args[idx + 1]), networks);
+    action(&files, Path::new(&args[idx + 1]), &networks);
 
     println!("Cleaning import directory...");
     action::clean_dir(Path::new(&args[idx])).unwrap();

@@ -16,16 +16,14 @@ pub fn capitalize(s: &str) -> String {
 pub fn rename<'a>(
     source: &'a Path,
     target_path: &'a Path,
-    networks: &'a Vec<Network>,
+    networks: &'a [Network],
 ) -> Option<Names<'a>> {
-    let target_dir = target_path.to_string_lossy().to_string();
-
-    let filename = source.file_stem().unwrap().to_string_lossy().to_string();
+    let filename = source.file_stem().unwrap().to_str().unwrap();
     if filename.matches('.').count() < 2 {
         return None;
     }
 
-    let (network, studio) = studio_f(&filename, networks)?;
+    let (network, studio) = studio_f(filename, networks)?;
 
     // "studio" "24.03.30.rest.of"
     let (_, name_wo_studio) = filename.split_once('.')?;
@@ -54,20 +52,20 @@ pub fn rename<'a>(
     path.set_extension(source.extension()?);
 
     capped = format!("{}/{}/{} {}", studio, year, studio, path.display());
-    if network.is_some() {
-        capped = format!("{}/{}", network.unwrap(), capped);
+    if let Some(net) = network {
+        capped = format!("{net}/{capped}");
     }
 
-    let source_str = source.to_str().unwrap();
+    let target_dir = target_path.to_str().unwrap();
     Some(Names {
-        old: source_str,
+        old: source.to_str().unwrap(),
         new: format!("{target_dir}/{capped}"),
     })
 }
 
 /// Return Some(Some(Network), Studio) if found
 /// Otherwise returns None
-pub fn studio_f<'a>(s: &'a str, json: &'a Vec<Network>) -> Option<(Option<&'a str>, &'a str)> {
+pub fn studio_f<'a>(s: &'a str, json: &'a [Network]) -> Option<(Option<&'a str>, &'a str)> {
     for net in json {
         for stu in &net.studios {
             if format!("{s}.").starts_with(stu.xc) {
