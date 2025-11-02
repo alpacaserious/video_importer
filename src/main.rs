@@ -1,5 +1,5 @@
 #![feature(iter_intersperse)]
-
+#![warn(clippy::pedantic)]
 use crate::action::{Network, action};
 use crate::find_files::find_files;
 use std::env; // read program flags

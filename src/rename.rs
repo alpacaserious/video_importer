@@ -21,28 +21,28 @@ pub fn rename<'a>(
     let target_dir = target_path.to_string_lossy().to_string();
 
     let filename = source.file_stem().unwrap().to_string_lossy().to_string();
-    if filename.matches(".").count() < 2 {
+    if filename.matches('.').count() < 2 {
         return None;
     }
 
     let (network, studio) = studio_f(&filename, networks)?;
 
     // "studio" "24.03.30.rest.of"
-    let (_, name_wo_studio) = filename.split_once(".")?;
+    let (_, name_wo_studio) = filename.split_once('.')?;
 
     // "24.07.30" "rest.of"
     let (date, name) = name_wo_studio.split_at_checked(8)?;
-    let date = date.replace(".", "-");
+    let date = date.replace('.', "-");
     let year = format!("20{}", date.split_at_checked(2)?.0);
 
     let name = name.replace(".480p", "");
 
     // "2024-07-30 Rest Of"
-    let mut capped: Vec<String> = name.split(".").map(capitalize).collect();
+    let mut capped: Vec<String> = name.split('.').map(capitalize).collect();
 
     if capped.len() >= 5 && capped[3] == "And" {
-        capped[3] = ",".to_string()
-    };
+        capped[3] = ",".to_string();
+    }
 
     let mut capped: String = capped.into_iter().intersperse(String::from(" ")).collect();
     // adds " , " instead of ", "
@@ -75,7 +75,7 @@ pub fn studio_f<'a>(s: &'a str, json: &'a Vec<Network>) -> Option<(Option<&'a st
                     return Some((None, stu.proper));
                 }
                 return Some((Some(net.name), stu.proper));
-            };
+            }
         }
     }
     None

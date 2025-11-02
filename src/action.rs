@@ -56,14 +56,14 @@ pub fn clean_dir(dir: &Path) -> Result<(), std::io::Error> {
 
     if files.is_empty() {
         return Ok(());
-    };
+    }
 
     for f in files {
         let p = f.parent().expect("file parent");
-        if p != dir {
-            fs::remove_dir_all(p)?
-        } else {
+        if p == dir {
             println!("won't remove {}", p.display());
+        } else {
+            fs::remove_dir_all(p)?;
         }
     }
     Ok(())
