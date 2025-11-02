@@ -10,8 +10,8 @@ mod find_files;
 mod rename;
 
 #[cfg_attr(test, derive(Debug, PartialEq))]
-pub struct Names {
-    old: String,
+pub struct Names<'a> {
+    old: &'a str,
     new: String,
 }
 

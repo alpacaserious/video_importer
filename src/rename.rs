@@ -13,7 +13,11 @@ pub fn capitalize(s: &str) -> String {
 }
 
 /// source: complete path, target: target dir, json: parsed json struct
-pub fn rename(source: &Path, target_path: &Path, json: &Vec<Network>) -> Option<Names> {
+pub fn rename<'a>(
+    source: &'a Path,
+    target_path: &'a Path,
+    json: &'a Vec<Network>,
+) -> Option<Names<'a>> {
     let target_dir = target_path.to_string_lossy().to_string();
 
     let filename = source.file_stem().unwrap().to_string_lossy().to_string();
@@ -54,7 +58,7 @@ pub fn rename(source: &Path, target_path: &Path, json: &Vec<Network>) -> Option<
         capped = format!("{}/{}", network.unwrap(), capped);
     }
 
-    let source_str = source.display().to_string();
+    let source_str = source.to_str().unwrap();
     Some(Names {
         old: source_str,
         new: format!("{target_dir}/{capped}"),
@@ -94,8 +98,8 @@ mod tests {
     fn test_and_to_comma() {
         let networks = json_to_data();
         let names = rename(
-            &PathBuf::from("/import/milfty.23.02.11.first.name.and.second.name.mp4"),
-            &PathBuf::from("/target"),
+            &Path::new("/import/milfty.23.02.11.first.name.and.second.name.mp4"),
+            &Path::new("/target"),
             &networks,
         )
         .unwrap();
@@ -103,7 +107,7 @@ mod tests {
         assert_eq!(
             names,
             Names {
-                old: String::from("/import/milfty.23.02.11.first.name.and.second.name.mp4"),
+                old: "/import/milfty.23.02.11.first.name.and.second.name.mp4",
                 new: String::from(
                     "/target/Paper Street Media/MYLF/Milfty/2023/Milfty 2023-02-11 First Name, Second Name.mp4"
                 )
@@ -115,8 +119,8 @@ mod tests {
     fn test_rename_correct() {
         let networks = json_to_data();
         let names = rename(
-            &PathBuf::from("/import/milfty.23.02.11.title.mp4"),
-            &PathBuf::from("/target"),
+            &Path::new("/import/milfty.23.02.11.title.mp4"),
+            &Path::new("/target"),
             &networks,
         )
         .unwrap();
@@ -124,7 +128,7 @@ mod tests {
         assert_eq!(
             names,
             Names {
-                old: String::from("/import/milfty.23.02.11.title.mp4"),
+                old: "/import/milfty.23.02.11.title.mp4",
                 new: String::from(
                     "/target/Paper Street Media/MYLF/Milfty/2023/Milfty 2023-02-11 Title.mp4"
                 )

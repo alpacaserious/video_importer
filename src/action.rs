@@ -85,7 +85,7 @@ pub fn clean_dir(dir: &Path) -> Result<(), std::io::Error> {
 }
 
 fn action_impl(files_len: usize, i: usize, name: &Names) {
-    match move_f(&name.old, &name.new) {
+    match move_f(name.old, &name.new) {
         Ok(()) => {
             println!(
                 "[{}] of [{}] {} {}",
