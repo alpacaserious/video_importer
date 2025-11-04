@@ -22,8 +22,6 @@ pub struct Network<'a> {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Studio<'a> {
-    pub tgx: &'a str,
-    pub gp: &'a str,
     pub xc: &'a str,
     pub proper: &'a str,
 }
