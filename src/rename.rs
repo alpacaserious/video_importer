@@ -140,4 +140,31 @@ mod tests {
             }
         )
     }
+
+    #[test]
+    fn studios() {
+        let binding = embed_file::embed_string!("rename.json");
+        let text = match binding {
+            std::borrow::Cow::Borrowed(binding) => binding.to_owned(),
+            std::borrow::Cow::Owned(binding) => binding,
+        };
+        let networks: Vec<Network> = serde_json::from_str(&text).unwrap();
+
+        assert_eq!(studio_f("fakestudio", &networks), None);
+
+        assert_eq!(studio_f("wicked", &networks), Some((None, "Wicked")));
+
+        assert_eq!(
+            studio_f("mommygotboobs", &networks),
+            Some((Some("Brazzers"), "Mommy Got Boobs"))
+        );
+
+        assert_eq!(
+            studio_f("etrasmall", &networks),
+            Some((
+                Some("Paper Street Media/TeamSkeet (Network)"),
+                "Exxxtra Small"
+            ))
+        );
+    }
 }
